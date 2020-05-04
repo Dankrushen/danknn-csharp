@@ -1,6 +1,6 @@
 ﻿namespace DankNN
 {
-    public class DankNetwork
+    public class DankLayer
     {
     }
 }
