@@ -1,6 +1,6 @@
 
-# Created by https://www.gitignore.io/api/git,rider,linux,macos,csharp,windows,monodevelop
-# Edit at https://www.gitignore.io/?templates=git,rider,linux,macos,csharp,windows,monodevelop
+# Created by https://www.gitignore.io/api/git,rider,linux,macos,csharp,windows,dotnetcore,monodevelop
+# Edit at https://www.gitignore.io/?templates=git,rider,linux,macos,csharp,windows,dotnetcore,monodevelop
 
 ### Csharp ###
 ## Ignore Visual Studio temporary files, build results, and
@@ -352,6 +352,16 @@ healthchecksdb
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 
+### DotnetCore ###
+# .NET Core build folders
+/bin
+/obj
+
+# Common node modules locations
+/node_modules
+/wwwroot/node_modules
+
+
 ### Git ###
 # Created by git for backups. To disable backups in Git:
 # $ git config --global mergetool.keepBackup false
@@ -513,4 +523,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.gitignore.io/api/git,rider,linux,macos,csharp,windows,monodevelop
+# End of https://www.gitignore.io/api/git,rider,linux,macos,csharp,windows,dotnetcore,monodevelop
