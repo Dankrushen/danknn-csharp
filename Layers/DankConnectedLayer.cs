@@ -98,12 +98,11 @@ namespace DankNN.Layers
             }
 
             // Apply the error to the connection weights
-            var length = connectionWeights.Length;
             unsafe
             {
                 fixed (double* pConnectionWeights = connectionWeights, pConnectionErrors = connectionErrors)
                 {
-                    for (var i = 0; i < length; i++)
+                    for (var i = 0; i < connectionWeights.Length; i++)
                     {
                         pConnectionWeights[i] -= (learningRate * pConnectionErrors[i]) / numErrors;
                         pConnectionErrors[i] = 0;

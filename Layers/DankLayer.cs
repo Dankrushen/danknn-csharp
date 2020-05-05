@@ -1,4 +1,6 @@
-﻿namespace DankNN.Layers
+﻿using System;
+
+namespace DankNN.Layers
 {
     public class DankLayer
     {
@@ -8,6 +10,10 @@
 
         public DankLayer(int numNeurons)
         {
+            if (numNeurons <= 0)
+                throw new ArgumentOutOfRangeException(nameof(numNeurons), numNeurons,
+                    $"{nameof(numNeurons)} must be greater than 0");
+
             neurons = new double[numNeurons];
         }
     }
