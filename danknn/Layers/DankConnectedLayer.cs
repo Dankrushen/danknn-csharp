@@ -22,6 +22,8 @@ namespace DankNN.Layers
         public DankConnectedLayer(int numNeurons, DankLayer parent, IDankActivation activation) : base(numNeurons)
         {
             this.parent = parent;
+            parent.child = this;
+
             this.activation = activation;
 
             rawNeurons = new double[numNeurons];
@@ -29,8 +31,8 @@ namespace DankNN.Layers
             neuronBiases = new double[numNeurons];
             neuronErrors = new double[numNeurons];
 
-            connectionWeights = new double[parent.neurons.Length, numNeurons];
-            connectionErrors = new double[parent.neurons.Length, numNeurons];
+            connectionWeights = new double[numNeurons, parent.neurons.Length];
+            connectionErrors = new double[numNeurons, parent.neurons.Length];
         }
 
         public void Forward()
@@ -72,7 +74,7 @@ namespace DankNN.Layers
                         offsetRow = row * width;
 
                         for (var offset = 0; offset < width; offset++)
-                            pConnectionErrors[offsetRow + offset] += pNeuronError[offset] * pParentNeurons[row];
+                            pConnectionErrors[offsetRow + offset] += pNeuronError[row] * pParentNeurons[offset];
                     }
                 }
             }
@@ -85,7 +87,7 @@ namespace DankNN.Layers
             if (child == null)
                 throw new NullReferenceException($"{nameof(child)} must be defined to propagate upstream");
 
-            AddError(child.rawNeurons.TimesHorizontal(child.connectionWeights));
+            AddError(child.connectionWeights.TransposeTimes(child.rawNeurons));
         }
 
         public void ApplyError(double learningRate)

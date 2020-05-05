@@ -82,25 +82,26 @@
             }
         }
 
-        public static double[] TimesHorizontal(this double[] a, double[,] b)
+        public static double[] TransposeTimes(this double[,] a, double[] b)
         {
-            // The height is 1, therefore it can be ignored
-            var width = b.GetLength(1);
-            var length = a.Length;
+            var height = a.GetLength(1);
+            // The width is 1, therefore it can be ignored
+            var length = a.GetLength(0);
 
-            var result = new double[width];
+            var result = new double[height];
             unsafe
             {
                 fixed (double* pResult = result, pA = a, pB = b)
                 {
-                    int offsetColumn;
-                    for (var column = 0; column < width; column++)
+                    int offsetRow;
+                    for (var row = 0; row < height; row++)
                     {
-                        offsetColumn = column;
+                        offsetRow = row;
+
                         double res = 0;
-                        for (var offset = 0; offset < length; offset++, offsetColumn += width)
-                            res += pA[offset] * pB[offsetColumn];
-                        pResult[column] = res;
+                        for (var offset = 0; offset < length; offset++, offsetRow += length)
+                            res += pA[offsetRow] * pB[offset];
+                        pResult[row] = res;
                     }
                 }
             }

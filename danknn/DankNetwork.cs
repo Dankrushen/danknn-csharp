@@ -80,7 +80,8 @@ namespace DankNN
             // Set the first layer's values
             for (var i = 0; i < inputLayer.neurons.Length; i++) inputLayer.neurons[i] = inputs[i];
 
-            for (var i = 1; i < connectedLayers.Count; i++) connectedLayers[i].Forward();
+            foreach (var layer in connectedLayers)
+                layer.Forward();
 
             return OutputLayer.neurons;
         }
@@ -96,7 +97,7 @@ namespace DankNN
 
             outputLayer.AddError(errorDerivatives);
 
-            for (var i = connectedLayers.Count - 2; i > 0; i--) connectedLayers[i].Backward();
+            for (var i = connectedLayers.Count - 2; i >= 0; i--) connectedLayers[i].Backward();
         }
 
         public double Backpropagate(double[] expectedOutputs, IDankError error)
@@ -124,7 +125,7 @@ namespace DankNN
 
         public void ApplyErr(double learningRate = 1)
         {
-            for (var i = 1; i < connectedLayers.Count; i++) connectedLayers[i].ApplyError(learningRate);
+            for (var i = 0; i < connectedLayers.Count; i++) connectedLayers[i].ApplyError(learningRate);
         }
     }
 }
