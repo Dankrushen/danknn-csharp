@@ -2,7 +2,7 @@
 {
     public class DankLayer
     {
-        public double[] neurons;
+        public readonly double[] neurons;
 
         public DankConnectedLayer? child;
 
