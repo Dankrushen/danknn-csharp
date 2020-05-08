@@ -9,6 +9,9 @@ namespace DankNN.Layers
         public readonly DankLayer parent;
         public IDankActivation activation;
 
+        public static readonly Random DropoutRandom = new Random();
+        public double dropout;
+
         protected readonly double[] rawNeurons;
 
         public readonly double[] neuronBiases;
@@ -19,12 +22,15 @@ namespace DankNN.Layers
 
         public int numErrors = 0;
 
-        public DankConnectedLayer(int numNeurons, DankLayer parent, IDankActivation activation) : base(numNeurons)
+        public DankConnectedLayer(int numNeurons, DankLayer parent, IDankActivation activation, double dropout = 0.0) :
+            base(numNeurons)
         {
             this.parent = parent;
             parent.child = this;
 
             this.activation = activation;
+
+            this.dropout = dropout;
 
             rawNeurons = new double[numNeurons];
 
@@ -35,6 +41,17 @@ namespace DankNN.Layers
             connectionErrors = new double[numNeurons, parent.neurons.Length];
         }
 
+        private bool ShouldDropNeuron()
+        {
+            if (dropout <= 0.0)
+                return false;
+
+            if (dropout >= 1.0)
+                return true;
+
+            return DropoutRandom.NextDouble() < dropout;
+        }
+
         public void Forward()
         {
             connectionWeights.Times(parent.neurons, neurons);
@@ -42,9 +59,9 @@ namespace DankNN.Layers
             for (var i = 0; i < neurons.Length; i++)
             {
                 var inputValue = neurons[i] + neuronBiases[i];
-
                 rawNeurons[i] = inputValue;
-                neurons[i] = activation.Calculate(inputValue);
+
+                neurons[i] = ShouldDropNeuron() ? 0.0 : activation.Calculate(inputValue);
             }
         }
 

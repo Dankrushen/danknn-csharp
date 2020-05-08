@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using DankNN.Activation;
 using DankNN.Error;
 using DankNN.Layers;
@@ -19,11 +20,11 @@ namespace DankNN
             inputLayer = new DankLayer(numInputNeurons);
         }
 
-        private static Random random = new Random();
+        private static readonly Random InitRandom = new Random();
         private static double GenerateNormalRandom()
         {
-            return Math.Sqrt(-2.0 * Math.Log(1.0 - random.NextDouble())) *
-                   Math.Sin(2.0 * Math.PI * (1.0 - random.NextDouble()));
+            return Math.Sqrt(-2.0 * Math.Log(1.0 - InitRandom.NextDouble())) *
+                   Math.Sin(2.0 * Math.PI * (1.0 - InitRandom.NextDouble()));
         }
 
         public void ApplyNormalInit()
@@ -58,17 +59,17 @@ namespace DankNN
             }
         }
 
-        public DankConnectedLayer MakeLayer(int numNeurons, IDankActivation activation)
+        public DankConnectedLayer MakeLayer(int numNeurons, IDankActivation activation, double dropout = 0.0)
         {
-            var layer = new DankConnectedLayer(numNeurons, EndLayer, activation);
+            var layer = new DankConnectedLayer(numNeurons, EndLayer, activation, dropout);
             connectedLayers.Add(layer);
 
             return layer;
         }
 
-        public DankLayer MakeLayer(int numNeurons)
+        public DankLayer MakeLayer(int numNeurons, double dropout = 0.0)
         {
-            return MakeLayer(numNeurons, DankLinearActivation.Singleton);
+            return MakeLayer(numNeurons, DankLinearActivation.Singleton, dropout);
         }
 
         public double[] Propagate(double[] inputs)
@@ -109,7 +110,7 @@ namespace DankNN
                     $"The length of {nameof(expectedOutputs)} must be the same as the number of output neurons",
                     nameof(expectedOutputs));
 
-            // Set the last layer's error values and calculate loss
+            // Calculate the last layer's error values and calculate loss
             double loss = 0;
             var errorDerivatives = new double[expectedOutputs.Length];
             for (var i = 0; i < outputLayer.neurons.Length; i++)
@@ -123,9 +124,79 @@ namespace DankNN
             return loss;
         }
 
+        public double CalculateLoss(double[] expectedOutputs, IDankError error)
+        {
+            DankLayer outputLayer = OutputLayer;
+
+            if (expectedOutputs.Length != outputLayer.neurons.Length)
+                throw new ArgumentException(
+                    $"The length of {nameof(expectedOutputs)} must be the same as the number of output neurons",
+                    nameof(expectedOutputs));
+
+            // Calculate loss for each output
+            double loss = 0;
+            for (var i = 0; i < outputLayer.neurons.Length; i++)
+                loss += error.Calculate(outputLayer.neurons[i], expectedOutputs[i]);
+
+            return loss;
+        }
+
         public void ApplyErr(double learningRate = 1)
         {
-            for (var i = 0; i < connectedLayers.Count; i++) connectedLayers[i].ApplyError(learningRate);
+            foreach (var layer in connectedLayers)
+                layer.ApplyError(learningRate);
+        }
+
+        public void Save(string path)
+        {
+            BinaryWriter writer = new BinaryWriter(File.Create(path));
+
+            try
+            {
+                foreach (var layer in connectedLayers)
+                {
+                    unsafe
+                    {
+                        fixed (double* pConnectionWeights = layer.connectionWeights)
+                        {
+                            for (var i = 0; i < layer.connectionWeights.Length; i++)
+                                writer.Write(pConnectionWeights[i]);
+                        }
+                    }
+
+                    foreach (var neuronBias in layer.neuronBiases) writer.Write(neuronBias);
+                }
+            }
+            finally
+            {
+                writer.Close();
+            }
+        }
+
+        public void Load(string path)
+        {
+            BinaryReader reader = new BinaryReader(File.OpenRead(path));
+
+            try
+            {
+                foreach (var layer in connectedLayers)
+                {
+                    unsafe
+                    {
+                        fixed (double* pConnectionWeights = layer.connectionWeights)
+                        {
+                            for (var i = 0; i < layer.connectionWeights.Length; i++)
+                                pConnectionWeights[i] = reader.ReadDouble();
+                        }
+                    }
+
+                    for (var i = 0; i < layer.neuronBiases.Length; i++) layer.neuronBiases[i] = reader.ReadDouble();
+                }
+            }
+            finally
+            {
+                reader.Close();
+            }
         }
     }
 }

@@ -111,13 +111,11 @@
 
         public static void PlusEquals(this double[,] a, double[,] b)
         {
-            var length = a.Length;
-
             unsafe
             {
                 fixed (double* pA = a, pB = b)
                 {
-                    for (var i = 0; i < length; i++) pA[i] += pB[i];
+                    for (var i = 0; i < a.Length; i++) pA[i] += pB[i];
                 }
             }
         }
